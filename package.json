@@ -1,8 +1,8 @@
 {
-  "name": "nextcollege-masterclass-scaffold",
+  "name": "hamburger-rapid-commercial",
   "version": "1.0.0",
   "private": true,
-  "description": "Scaffold profesional y Template Repository para webinars y masterclasses: E-commerce (Astro), PWA (React), Admin Dashboard (React), Node.js API y MySQL con CI/CD automatizado en Dokploy.",
+  "description": "Hamburger Rapid - Plataforma Comercial Oficial: E-commerce (Astro), PWA (React), Admin Dashboard (React), Node.js API y MySQL con CI/CD automatizado en Dokploy.",
   "scripts": {
     "install:all": "npm install --prefix apps/ecommerce && npm install --prefix apps/pwa && npm install --prefix apps/admin && npm install --prefix server",
     "build:ecommerce": "npm run build --prefix apps/ecommerce",
@@ -13,9 +13,8 @@
     "start": "node server/src/app.js"
   },
   "keywords": [
-    "template-repository",
-    "scaffold",
-    "masterclass",
+    "hamburger-rapid",
+    "fast-food",
     "dokploy",
     "cicd",
     "astro",
@@ -24,6 +23,6 @@
     "nodejs",
     "mysql"
   ],
-  "author": "Pablo Valdivia",
+  "author": "Hamburger Rapid Architecture Team",
   "license": "MIT"
 }
