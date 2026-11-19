@@ -47,7 +47,7 @@ const INITIAL_HAMBURGERS = [
     price: 15.50,
     stock: 35,
     specialty_level: 'Edición Especial del Chef 🔥',
-    image: 'https://images.unsplash.com/photo-1583032015879-1153d8650fdb?w=700&auto=format&fit=crop&q=80',
+    image: '/images/burger-doble-especial.jpg',
     description: 'Una experiencia gastronómica sublime: dos piezas de carne Angus premium (300g totales), queso gouda ahumado, bacon crocante glaseado en miel de maple, champiñones al tomillo silvestre y emulsión de alioli tostado.',
     ingredients: ['Doble corte Angus (300g)', 'Queso Gouda ahumado', 'Bacon crujiente a la miel', 'Champiñones salteados', 'Alioli de ajo asado', 'Pan brioche'],
     prepTime: '14 min',

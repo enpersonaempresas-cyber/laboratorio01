@@ -38,7 +38,7 @@ const MENU_ITEMS = [
     category: 'Especialidades',
     price: 15.50,
     badge: 'Edición Chef 🔥',
-    image: 'https://images.unsplash.com/photo-1583032015879-1153d8650fdb?w=500&auto=format&fit=crop&q=80',
+    image: '/images/burger-doble-especial.jpg',
     description: 'Doble corte Angus (300g), queso gouda ahumado, bacon crocante glaseado en maple y champiñones al tomillo.',
     calories: '920 kcal'
   },

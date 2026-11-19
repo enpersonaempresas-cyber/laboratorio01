@@ -20,6 +20,12 @@ app.use((req, res, next) => {
 // API Endpoints
 app.use('/api', apiRoutes);
 
+// Static assets (images)
+const imagesPath = path.join(__dirname, '../images');
+if (fs.existsSync(imagesPath)) {
+  app.use('/images', express.static(imagesPath));
+}
+
 // Define paths for the 3 compiled frontends
 const pwaPath = path.join(__dirname, '../public/pwa');
 const adminPath = path.join(__dirname, '../public/admin');
