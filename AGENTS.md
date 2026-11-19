@@ -165,5 +165,16 @@ Este archivo establece las directivas técnicas, directrices de diseño, reglas 
     - Persistencia de estado en `localStorage` (`sidebar_collapsed`).
     - Margen reactivo fluido en el área de trabajo principal (`marginLeft: 240px` vs `56px`).
     - Verificación y compilación global exitosa con `npm run build:all`.
+- **2026-11-19 (v1.5.1)**:
+  - Sincronización integral y mantenimiento de los 6 catálogos maestros con iDempiere ERP y SQLite (`better-sqlite3`):
+    - *Categorías de Productos* (`M_Product_Category`) con CRUD local y sincronización.
+    - *Productos* (`M_Product`) con CRUD local y sincronización.
+    - *Listas de Precios & Tarifas* (`M_PriceList`, `M_PriceList_Version`, `M_ProductPrice`) con CRUD local y sincronización.
+    - *Categorías de Clientes* (`C_BP_Group`) con CRUD local y sincronización.
+    - *Clientes & Socios de Negocio* (`C_BPartner`) con CRUD local y sincronización.
+    - *Impuestos* (`C_Tax`) en **modo estrictamente de solo lectura** con bloqueo HTTP 405 en mutaciones (`POST`, `PUT`, `DELETE`).
+  - Habilitación de iconos vectoriales dedicados (`UsersGroupIcon`, `PriceTagIcon`, `DatabaseIcon`) y navegación completa en `SidebarNavbar.jsx` tanto en modo expandido como colapsado.
+  - Verificación del pipeline completo de compilación (`npm run build:all`) y despliegue local verificado con `node server/src/app.js`.
+
 
 

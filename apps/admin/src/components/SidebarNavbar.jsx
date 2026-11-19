@@ -136,6 +136,30 @@ export function SettingsIcon({ size = 20 }) {
   );
 }
 
+export function UsersGroupIcon({ size = 20 }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} fill="currentColor" viewBox="0 0 256 256" style={{ flexShrink: 0 }}>
+      <path d="M117.25,157.92a60,60,0,1,0-66.5,0A95.83,95.83,0,0,0,3.53,195.63a8,8,0,1,0,13.4,8.74,80,80,0,0,1,134.14,0,8,8,0,0,0,13.4-8.74A95.83,95.83,0,0,0,117.25,157.92ZM40,108a44,44,0,1,1,44,44A44.05,44.05,0,0,1,40,108Zm210.14,98.37a8,8,0,0,1-11.07-2.33A79.83,79.83,0,0,0,172,168a8,8,0,0,1,0-16,44,44,0,1,0-16.34-84.87,8,8,0,1,1-5.94-14.85,60,60,0,0,1,55.53,105.64,95.83,95.83,0,0,1,47.22,37.71A8,8,0,0,1,250.14,206.37Z" />
+    </svg>
+  );
+}
+
+export function PriceTagIcon({ size = 20 }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} fill="currentColor" viewBox="0 0 256 256" style={{ flexShrink: 0 }}>
+      <path d="M239.06,123.51l-88-88A24,24,0,0,0,134.06,28.5H48a24,24,0,0,0-24,24v86.06a24,24,0,0,0,7.03,17l88,88a24,24,0,0,0,33.94,0l86.06-86.06a24,24,0,0,0,0-33.94Zm-11.31,22.63-86.06,86.06a8,8,0,0,1-11.31,0l-88-88A8,8,0,0,1,40,138.56V52.5a8,8,0,0,1,8-8h86.06a8,8,0,0,1,5.66,2.34l88,88a8,8,0,0,1,0,11.32ZM88,84A16,16,0,1,1,72,68,16,16,0,0,1,88,84Z" />
+    </svg>
+  );
+}
+
+export function DatabaseIcon({ size = 20 }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} fill="currentColor" viewBox="0 0 256 256" style={{ flexShrink: 0 }}>
+      <path d="M224,64v64a8,8,0,0,1-1.6,4.8A45.47,45.47,0,0,1,192,148.64V192a47.38,47.38,0,0,1-29.6,43.2A111.45,111.45,0,0,1,128,240a111.45,111.45,0,0,1-34.4-4.8A47.38,47.38,0,0,1,64,192V148.64A45.47,45.47,0,0,1,33.6,132.8,8,8,0,0,1,32,128V64a8,8,0,0,1,1.6-4.8C41.77,47.11,79.52,32,128,32s86.23,15.11,94.4,27.2A8,8,0,0,1,224,64ZM48,128c0,11.64,30.34,32,80,32s80-20.36,80-32V83.67c-17.77,13-48.43,20.33-80,20.33s-62.23-7.37-80-20.33ZM128,48C78.34,48,48,68.36,48,80s30.34,32,80,32,80-20.36,80-32S177.66,48,128,48ZM80,192c0,11.64,30.34,32,80,32s80-20.36,80-32V147.67c-17.77,13-48.43,20.33-80,20.33s-62.23-7.37-80-20.33Z" />
+    </svg>
+  );
+}
+
 export function HeadphonesIcon({ size = 16 }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
@@ -497,12 +521,12 @@ export default function SidebarNavbar({
           </div>
         )}
 
-        {/* Contactos */}
+        {/* Contactos / Clientes C_BPartner */}
         <div style={{ padding: isCollapsed ? '0' : '2px 8px', display: isCollapsed ? 'flex' : 'block', justifyContent: 'center' }}>
           <button
             type="button"
             onClick={() => onSelectView('erp_customers')}
-            title="Contactos (C_BPartner)"
+            title="Clientes & Contactos (C_BPartner)"
             style={{
               display: 'flex',
               width: isCollapsed ? '40px' : '100%',
@@ -528,18 +552,55 @@ export default function SidebarNavbar({
             </div>
             {!isCollapsed && (
               <span style={{ flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                Contactos
+                Clientes (C_BPartner)
               </span>
             )}
           </button>
         </div>
 
-        {/* Ventas */}
+        {/* Grupos de Clientes C_BP_Group */}
+        <div style={{ padding: isCollapsed ? '0' : '2px 8px', display: isCollapsed ? 'flex' : 'block', justifyContent: 'center' }}>
+          <button
+            type="button"
+            onClick={() => onSelectView('customer_categories')}
+            title="Grupos de Clientes (C_BP_Group)"
+            style={{
+              display: 'flex',
+              width: isCollapsed ? '40px' : '100%',
+              height: isCollapsed ? '40px' : 'auto',
+              alignItems: 'center',
+              justifyContent: isCollapsed ? 'center' : 'flex-start',
+              gap: '10px',
+              padding: isCollapsed ? '0' : '6px 12px',
+              fontSize: '0.86rem',
+              borderRadius: isCollapsed ? '8px' : '6px',
+              border: 'none',
+              backgroundColor: activeView === 'customer_categories' ? '#ffffff' : 'transparent',
+              color: activeView === 'customer_categories' ? '#0f172a' : '#334155',
+              cursor: 'pointer',
+              boxShadow: activeView === 'customer_categories' ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+              transition: 'all 0.15s'
+            }}
+            onMouseEnter={(e) => { if (activeView !== 'customer_categories') e.currentTarget.style.backgroundColor = '#f1f5f9'; }}
+            onMouseLeave={(e) => { if (activeView !== 'customer_categories') e.currentTarget.style.backgroundColor = 'transparent'; }}
+          >
+            <div style={{ color: activeView === 'customer_categories' ? '#0f172a' : '#64748b', display: 'flex' }}>
+              <UsersGroupIcon />
+            </div>
+            {!isCollapsed && (
+              <span style={{ flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                Grupos de Clientes
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* Ventas & Pedidos */}
         <div style={{ padding: isCollapsed ? '0' : '2px 8px', display: isCollapsed ? 'flex' : 'block', justifyContent: 'center' }}>
           <button
             type="button"
             onClick={() => onSelectView('orders')}
-            title="Ventas (Bandeja de Pedidos & Precios)"
+            title="Ventas & Bandeja de Pedidos"
             style={{
               display: 'flex',
               width: isCollapsed ? '40px' : '100%',
@@ -551,8 +612,8 @@ export default function SidebarNavbar({
               fontSize: '0.86rem',
               borderRadius: isCollapsed ? '8px' : '6px',
               border: 'none',
-              backgroundColor: (activeView === 'orders' || activeView === 'prices') ? '#ffffff' : 'transparent',
-              color: (activeView === 'orders' || activeView === 'prices') ? '#0f172a' : '#334155',
+              backgroundColor: activeView === 'orders' ? '#ffffff' : 'transparent',
+              color: activeView === 'orders' ? '#0f172a' : '#334155',
               cursor: 'pointer',
               transition: 'all 0.15s'
             }}
@@ -560,16 +621,53 @@ export default function SidebarNavbar({
             onMouseLeave={(e) => { if (activeView !== 'orders') e.currentTarget.style.backgroundColor = 'transparent'; }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div style={{ color: (activeView === 'orders' || activeView === 'prices') ? '#0f172a' : '#64748b', display: 'flex' }}>
+              <div style={{ color: activeView === 'orders' ? '#0f172a' : '#64748b', display: 'flex' }}>
                 <SalesIcon />
               </div>
               {!isCollapsed && (
                 <span style={{ textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  Ventas
+                  Ventas / Pedidos
                 </span>
               )}
             </div>
             {!isCollapsed && <ChevronDownIcon />}
+          </button>
+        </div>
+
+        {/* Listas de Precios M_PriceList */}
+        <div style={{ padding: isCollapsed ? '0' : '2px 8px', display: isCollapsed ? 'flex' : 'block', justifyContent: 'center' }}>
+          <button
+            type="button"
+            onClick={() => onSelectView('prices')}
+            title="Listas de Precios & Tarifas (M_PriceList)"
+            style={{
+              display: 'flex',
+              width: isCollapsed ? '40px' : '100%',
+              height: isCollapsed ? '40px' : 'auto',
+              alignItems: 'center',
+              justifyContent: isCollapsed ? 'center' : 'flex-start',
+              gap: '10px',
+              padding: isCollapsed ? '0' : '6px 12px',
+              fontSize: '0.86rem',
+              borderRadius: isCollapsed ? '8px' : '6px',
+              border: 'none',
+              backgroundColor: activeView === 'prices' ? '#ffffff' : 'transparent',
+              color: activeView === 'prices' ? '#0f172a' : '#334155',
+              cursor: 'pointer',
+              boxShadow: activeView === 'prices' ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+              transition: 'all 0.15s'
+            }}
+            onMouseEnter={(e) => { if (activeView !== 'prices') e.currentTarget.style.backgroundColor = '#f1f5f9'; }}
+            onMouseLeave={(e) => { if (activeView !== 'prices') e.currentTarget.style.backgroundColor = 'transparent'; }}
+          >
+            <div style={{ color: activeView === 'prices' ? '#0f172a' : '#64748b', display: 'flex' }}>
+              <PriceTagIcon />
+            </div>
+            {!isCollapsed && (
+              <span style={{ flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                Listas de Precios
+              </span>
+            )}
           </button>
         </div>
 
@@ -665,12 +763,12 @@ export default function SidebarNavbar({
           </div>
         )}
 
-        {/* Finanzas (Impuestos C_Tax & Tarifas) */}
+        {/* Finanzas (Impuestos C_Tax - Solo Lectura) */}
         <div style={{ padding: isCollapsed ? '0' : '2px 8px', display: isCollapsed ? 'flex' : 'block', justifyContent: 'center' }}>
           <button
             type="button"
             onClick={() => onSelectView('taxes')}
-            title="Finanzas (Impuestos C_Tax & Tarifas)"
+            title="Finanzas (Impuestos C_Tax) [Solo Lectura]"
             style={{
               display: 'flex',
               width: isCollapsed ? '40px' : '100%',
@@ -682,8 +780,8 @@ export default function SidebarNavbar({
               fontSize: '0.86rem',
               borderRadius: isCollapsed ? '8px' : '6px',
               border: 'none',
-              backgroundColor: (activeView === 'taxes' || activeView === 'prices') ? '#ffffff' : 'transparent',
-              color: (activeView === 'taxes' || activeView === 'prices') ? '#0f172a' : '#334155',
+              backgroundColor: activeView === 'taxes' ? '#ffffff' : 'transparent',
+              color: activeView === 'taxes' ? '#0f172a' : '#334155',
               cursor: 'pointer',
               transition: 'all 0.15s'
             }}
@@ -691,16 +789,28 @@ export default function SidebarNavbar({
             onMouseLeave={(e) => { if (activeView !== 'taxes') e.currentTarget.style.backgroundColor = 'transparent'; }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div style={{ color: (activeView === 'taxes' || activeView === 'prices') ? '#0f172a' : '#64748b', display: 'flex' }}>
+              <div style={{ color: activeView === 'taxes' ? '#0f172a' : '#64748b', display: 'flex' }}>
                 <FinanceIcon />
               </div>
               {!isCollapsed && (
                 <span style={{ textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  Finanzas
+                  Impuestos (C_Tax)
                 </span>
               )}
             </div>
-            {!isCollapsed && <ChevronDownIcon />}
+            {!isCollapsed && (
+              <span style={{
+                borderRadius: '9999px',
+                backgroundColor: '#fef3c7',
+                padding: '2px 6px',
+                fontSize: '10px',
+                fontWeight: '700',
+                color: '#b45309',
+                lineHeight: 1
+              }}>
+                Solo Lectura
+              </span>
+            )}
           </button>
         </div>
 
@@ -710,6 +820,43 @@ export default function SidebarNavbar({
             <span style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: '500' }}>Sistema</span>
           </div>
         )}
+
+        {/* Datamart SQLite & Sincronización */}
+        <div style={{ padding: isCollapsed ? '0' : '2px 8px', display: isCollapsed ? 'flex' : 'block', justifyContent: 'center' }}>
+          <button
+            type="button"
+            onClick={() => onSelectView('database')}
+            title="Datamart SQLite & Sincronización Global"
+            style={{
+              display: 'flex',
+              width: isCollapsed ? '40px' : '100%',
+              height: isCollapsed ? '40px' : 'auto',
+              alignItems: 'center',
+              justifyContent: isCollapsed ? 'center' : 'flex-start',
+              gap: '10px',
+              padding: isCollapsed ? '0' : '6px 12px',
+              fontSize: '0.86rem',
+              borderRadius: isCollapsed ? '8px' : '6px',
+              border: 'none',
+              backgroundColor: activeView === 'database' ? '#ffffff' : 'transparent',
+              color: activeView === 'database' ? '#0f172a' : '#334155',
+              cursor: 'pointer',
+              boxShadow: activeView === 'database' ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+              transition: 'all 0.15s'
+            }}
+            onMouseEnter={(e) => { if (activeView !== 'database') e.currentTarget.style.backgroundColor = '#f1f5f9'; }}
+            onMouseLeave={(e) => { if (activeView !== 'database') e.currentTarget.style.backgroundColor = 'transparent'; }}
+          >
+            <div style={{ color: activeView === 'database' ? '#0f172a' : '#64748b', display: 'flex' }}>
+              <DatabaseIcon />
+            </div>
+            {!isCollapsed && (
+              <span style={{ flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                Datamart SQLite
+              </span>
+            )}
+          </button>
+        </div>
 
         {/* Conectar agente de IA (iDempiere ERP v1 Live) */}
         <div style={{ padding: isCollapsed ? '0' : '2px 8px', display: isCollapsed ? 'flex' : 'block', justifyContent: 'center' }}>
@@ -748,7 +895,7 @@ export default function SidebarNavbar({
           </button>
         </div>
 
-        {/* Configuración (Perfil & Base de Datos SQLite) */}
+        {/* Configuración (Perfil & ERP) */}
         <div style={{ padding: isCollapsed ? '0' : '2px 8px', display: isCollapsed ? 'flex' : 'block', justifyContent: 'center' }}>
           <button
             type="button"
@@ -765,8 +912,8 @@ export default function SidebarNavbar({
               fontSize: '0.86rem',
               borderRadius: isCollapsed ? '8px' : '6px',
               border: 'none',
-              backgroundColor: (activeView === 'profile' || activeView === 'database') ? '#ffffff' : 'transparent',
-              color: (activeView === 'profile' || activeView === 'database') ? '#0f172a' : '#334155',
+              backgroundColor: activeView === 'profile' ? '#ffffff' : 'transparent',
+              color: activeView === 'profile' ? '#0f172a' : '#334155',
               cursor: 'pointer',
               transition: 'all 0.15s'
             }}
@@ -774,7 +921,7 @@ export default function SidebarNavbar({
             onMouseLeave={(e) => { if (activeView !== 'profile') e.currentTarget.style.backgroundColor = 'transparent'; }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div style={{ color: (activeView === 'profile' || activeView === 'database') ? '#0f172a' : '#64748b', display: 'flex' }}>
+              <div style={{ color: activeView === 'profile' ? '#0f172a' : '#64748b', display: 'flex' }}>
                 <SettingsIcon />
               </div>
               {!isCollapsed && (

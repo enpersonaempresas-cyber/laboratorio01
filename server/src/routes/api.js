@@ -321,14 +321,15 @@ router.get('/taxes', (req, res) => {
   }
 });
 
-// Bloqueo explícito de cualquier intento de mutación en impuestos
-router.all('/taxes/*', (req, res) => {
+// Bloqueo explícito de cualquier intento de mutación en impuestos (Solo Lectura)
+router.all(['/taxes', '/taxes/*'], (req, res, next) => {
   if (req.method !== 'GET') {
     return res.status(405).json({
       success: false,
-      error: 'Operación no permitida: El catálogo de impuestos (C_Tax) es de solo lectura.'
+      error: 'Operación no permitida: El catálogo de impuestos (C_Tax) es estrictamente de solo lectura.'
     });
   }
+  next();
 });
 
 // ==========================================
