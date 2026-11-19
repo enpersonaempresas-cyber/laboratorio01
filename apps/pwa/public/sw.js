@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nextcollege-pwa-v1';
+const CACHE_NAME = 'burger-factory-pwa-v2';
 const ASSETS_TO_CACHE = [
   '/app/',
   '/app/index.html',
@@ -7,12 +7,7 @@ const ASSETS_TO_CACHE = [
 ];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('📱 [Service Worker] Pre-cacheando assets de la PWA');
-      return cache.addAll(ASSETS_TO_CACHE);
-    }).then(() => self.skipWaiting())
-  );
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
@@ -21,7 +16,7 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         keys.map((key) => {
           if (key !== CACHE_NAME) {
-            console.log('📱 [Service Worker] Limpiando caché antigua:', key);
+            console.log('📱 [Service Worker] Purgando caché obsoleta:', key);
             return caches.delete(key);
           }
         })
@@ -31,20 +26,38 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  // Ignorar peticiones a las APIs del backend
   if (event.request.url.includes('/api/')) {
     return;
   }
 
+  // Estrategia Network-First para navegación (HTML)
+  // Garantiza que siempre se obtenga el index.html más reciente y el nuevo hash de Vite
+  if (event.request.mode === 'navigate' || event.request.destination === 'document') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          }
+          return response;
+        })
+        .catch(() => caches.match('/app/index.html').then((cached) => cached || caches.match('/app/')))
+    );
+    return;
+  }
+
+  // Para assets estáticos (CSS, JS, imágenes): Network-first con fallback a cache
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(event.request).catch(() => {
-        if (event.request.mode === 'navigate') {
-          return caches.match('/app/index.html');
+    fetch(event.request)
+      .then((response) => {
+        if (response && response.status === 200) {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
         }
-      });
-    })
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });

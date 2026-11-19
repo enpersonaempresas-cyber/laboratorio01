@@ -1,12 +1,12 @@
 {
-  "name": "Hamburger Rapid Mobile PWA",
-  "short_name": "RapidBurger",
-  "description": "App oficial de Hamburger Rapid para simular y ordenar hamburguesas artesanales en minutos",
+  "name": "Burger Factory • PWA Preventa",
+  "short_name": "BurgerFactory",
+  "description": "Aplicación móvil de preventa y pedidos rápidos conectada en tiempo real a iDempiere ERP",
   "start_url": "/app/",
   "scope": "/app/",
   "display": "standalone",
-  "background_color": "#F8FAFC",
-  "theme_color": "#E11D48",
+  "background_color": "#0b0e14",
+  "theme_color": "#ea580c",
   "orientation": "portrait",
   "icons": [
     {

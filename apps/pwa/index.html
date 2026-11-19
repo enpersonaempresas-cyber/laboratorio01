@@ -3,29 +3,41 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>Hamburger Rapid Mobile PWA</title>
+  <title>Burger Factory • PWA Preventa</title>
   
   <!-- PWA Meta Tags -->
   <link rel="manifest" href="/app/manifest.json" />
-  <meta name="theme-color" content="#E11D48" />
+  <meta name="theme-color" content="#ea580c" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="apple-mobile-web-app-title" content="Hamburger Rapid" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Burger Factory" />
   <link rel="apple-touch-icon" href="/app/icon-192.svg" />
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Oswald:wght@600;700&display=swap" rel="stylesheet">
 </head>
-<body>
-  <div id="root"></div>
+<body style="margin: 0; background-color: #0b0e14; color: #f8fafc;">
+  <div id="root">
+    <!-- Fallback visual mientras carga el bundle JS -->
+    <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#0b0e14;color:#f8fafc;font-family:system-ui,-apple-system,sans-serif;text-align:center;padding:20px;">
+      <div>
+        <div style="font-size:3.5rem;margin-bottom:12px;animation:pulse 1.5s infinite;">🍔</div>
+        <div style="font-size:1.25rem;font-weight:800;color:#ea580c;margin-bottom:6px;letter-spacing:0.02em;">BURGER FACTORY</div>
+        <div style="font-size:0.85rem;color:#94a3b8;font-weight:500;">Cargando PWA de Preventa...</div>
+      </div>
+    </div>
+  </div>
   <script type="module" src="/src/main.jsx"></script>
   
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/app/sw.js')
-          .then((reg) => console.log('✅ [PWA] Service Worker registrado con éxito:', reg.scope))
+          .then((reg) => {
+            console.log('✅ [PWA] Service Worker registrado con éxito:', reg.scope);
+            reg.update();
+          })
           .catch((err) => console.error('❌ [PWA] Error registrando Service Worker:', err));
       });
     }

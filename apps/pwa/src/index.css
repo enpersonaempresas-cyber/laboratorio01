@@ -1,26 +1,4 @@
-:root {
-  --primary: #E11D48; /* Gourmet Crimson */
-  --primary-hover: #BE123C;
-  --primary-subtle: #FFF1F2;
-  --accent-amber: #D97706;
-  --accent-amber-subtle: #FEF3C7;
-  --accent-green: #059669;
-  --accent-green-subtle: #ECFDF5;
-  --bg: #F8FAFC;
-  --surface: #FFFFFF;
-  --surface-muted: #F1F5F9;
-  --border: #E2E8F0;
-  --border-subtle: #F1F5F9;
-  --text: #0F172A;
-  --text-muted: #64748B;
-  --text-light: #94A3B8;
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 8px 20px -4px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 16px 32px -8px rgba(0, 0, 0, 0.12);
-  --radius-sm: 10px;
-  --radius-md: 14px;
-  --radius-lg: 20px;
-}
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Oswald:wght@600;700&display=swap');
 
 * {
   box-sizing: border-box;
@@ -31,45 +9,17 @@
 
 body {
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  background-color: #EEF2F6;
-  color: var(--text);
+  line-height: 1.5;
+  user-select: none;
   min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  -webkit-font-smoothing: antialiased;
 }
 
-#root {
-  width: 100%;
-  max-width: 480px;
-  min-height: 100vh;
-  background-color: var(--bg);
-  box-shadow: 0 0 50px rgba(15, 23, 42, 0.1);
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  border-left: 1px solid var(--border);
-  border-right: 1px solid var(--border);
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.fade-in {
-  animation: fadeIn 0.25s ease-out;
-}
-
-/* Custom subtle scrollbar */
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
-  border-radius: 4px;
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 9999px;
 }
