@@ -678,12 +678,12 @@ export default function SidebarNavbar({
           </div>
         )}
 
-        {/* Compras / Categorías */}
+        {/* Compras / Categorías (M_Product_Category - Solo Lectura) */}
         <div style={{ padding: isCollapsed ? '0' : '2px 8px', display: isCollapsed ? 'flex' : 'block', justifyContent: 'center' }}>
           <button
             type="button"
             onClick={() => onSelectView('product_categories')}
-            title="Compras & Categorías de Productos"
+            title="Categorías de Productos (M_Product_Category) [Solo Lectura]"
             style={{
               display: 'flex',
               width: isCollapsed ? '40px' : '100%',
@@ -709,20 +709,32 @@ export default function SidebarNavbar({
               </div>
               {!isCollapsed && (
                 <span style={{ textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  Compras
+                  Categorías (ERP)
                 </span>
               )}
             </div>
-            {!isCollapsed && <ChevronDownIcon />}
+            {!isCollapsed && (
+              <span style={{
+                borderRadius: '9999px',
+                backgroundColor: '#fef3c7',
+                padding: '2px 6px',
+                fontSize: '10px',
+                fontWeight: '700',
+                color: '#b45309',
+                lineHeight: 1
+              }}>
+                Solo Lectura
+              </span>
+            )}
           </button>
         </div>
 
-        {/* Inventario / Productos */}
+        {/* Inventario / Productos (M_Product - Solo Lectura) */}
         <div style={{ padding: isCollapsed ? '0' : '2px 8px', display: isCollapsed ? 'flex' : 'block', justifyContent: 'center' }}>
           <button
             type="button"
             onClick={() => onSelectView('products')}
-            title="Inventario (Maestro M_Product)"
+            title="Inventario de Productos (M_Product) [Solo Lectura]"
             style={{
               display: 'flex',
               width: isCollapsed ? '40px' : '100%',
@@ -748,11 +760,23 @@ export default function SidebarNavbar({
               </div>
               {!isCollapsed && (
                 <span style={{ textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  Inventario
+                  Productos (ERP)
                 </span>
               )}
             </div>
-            {!isCollapsed && <ChevronDownIcon />}
+            {!isCollapsed && (
+              <span style={{
+                borderRadius: '9999px',
+                backgroundColor: '#fef3c7',
+                padding: '2px 6px',
+                fontSize: '10px',
+                fontWeight: '700',
+                color: '#b45309',
+                lineHeight: 1
+              }}>
+                Solo Lectura
+              </span>
+            )}
           </button>
         </div>
 

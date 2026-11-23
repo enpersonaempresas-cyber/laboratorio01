@@ -35,6 +35,28 @@ const DEFAULT_IDEMPIERE_CONFIG = {
 };
 
 // Opciones Multitenant Sandbox GardenWorld (Fallback garantizado)
+const SANDBOX_WAREHOUSES_BY_ORG = {
+  11: [
+    { id: 103, name: 'HQ Warehouse' },
+    { id: 1000007, name: 'Admin Storage' }
+  ],
+  12: [
+    { id: 104, name: 'Store Central Warehouse' }
+  ],
+  50005: [
+    { id: 50005, name: 'Store East Warehouse' }
+  ],
+  50002: [
+    { id: 50003, name: 'Store North Warehouse' }
+  ],
+  50004: [
+    { id: 50004, name: 'Store South Warehouse' }
+  ],
+  50006: [
+    { id: 50006, name: 'Store West Warehouse' }
+  ]
+};
+
 const SANDBOX_MULTITENANT_CONTEXT = {
   clients: [
     { id: 11, name: 'GardenWorld, Inc.' },
@@ -225,7 +247,15 @@ async function getAvailableContext(userName, password, options = {}) {
           const orgsRes = await makeHttpRequest(`${erpBaseUrl}/api/v1/auth/organizations?client=${selectedClient}&role=${selectedRole}`, 'GET', authHeaders, null, 4000);
           if (orgsRes.statusCode === 200 && Array.isArray(orgsRes.data?.organizations) && orgsRes.data.organizations.length > 0) {
             const filteredOrgs = orgsRes.data.organizations.filter(o => o.id !== 0);
-            liveOrganizations = filteredOrgs.length > 0 ? filteredOrgs : orgsRes.data.organizations;
+            const rawOrgs = filteredOrgs.length > 0 ? filteredOrgs : orgsRes.data.organizations;
+
+            // Si la organización "HQ" (id 11) está disponible, colocarla al principio para pre-selección preferente
+            const hqIndex = rawOrgs.findIndex(o => o.id === 11 || (o.name && o.name.toUpperCase().includes('HQ')));
+            if (hqIndex > 0) {
+              const hqItem = rawOrgs.splice(hqIndex, 1)[0];
+              rawOrgs.unshift(hqItem);
+            }
+            liveOrganizations = rawOrgs;
           }
 
           const selectedOrg = liveOrganizations[0]?.id || 11;
@@ -635,12 +665,46 @@ async function fetchIdempiereModel(modelName, token, query = '$top=100', erpBase
   }
 }
 
+/**
+ * Consulta dinámica de almacenes para una organización específica (Soporte filtrado en cascada)
+ */
+async function getWarehousesForOrganization(clientId, roleId, organizationId, stage1Token, options = {}) {
+  const erpBaseUrl = cleanErpBaseUrl(options.baseUrl || DEFAULT_IDEMPIERE_CONFIG.baseUrl);
+  const orgIdNum = Number(organizationId);
+
+  if (stage1Token && stage1Token !== 'sandbox_temp_token') {
+    try {
+      const authHeaders = {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${stage1Token}`
+      };
+      const endpoint = `${erpBaseUrl}/api/v1/auth/warehouses?client=${clientId || 11}&role=${roleId || 102}&organization=${orgIdNum}`;
+      const whRes = await makeHttpRequest(endpoint, 'GET', authHeaders, null, options.timeout || 5000);
+      if (whRes.statusCode === 200 && Array.isArray(whRes.data?.warehouses)) {
+        return whRes.data.warehouses;
+      }
+    } catch (err) {
+      console.warn(`[iDempiereService] Error consultando almacenes para org ${orgIdNum}:`, err.message);
+    }
+  }
+
+  // Fallback o Sandbox
+  if (SANDBOX_WAREHOUSES_BY_ORG[orgIdNum]) {
+    return SANDBOX_WAREHOUSES_BY_ORG[orgIdNum];
+  }
+  return [
+    { id: orgIdNum * 10 + 1, name: `Almacén Principal (Org #${orgIdNum})` }
+  ];
+}
+
 module.exports = {
   cleanErpBaseUrl,
   DEFAULT_IDEMPIERE_CONFIG,
   SANDBOX_MULTITENANT_CONTEXT,
+  SANDBOX_WAREHOUSES_BY_ORG,
   sanitizeAndValidatePayload,
   getAvailableContext,
+  getWarehousesForOrganization,
   authenticateIdempiere,
   authenticateStep2,
   fetchIdempiereModel,

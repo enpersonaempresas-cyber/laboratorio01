@@ -6,21 +6,8 @@ export default function ProductsView({ session, onNotify }) {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
-  const [editingProduct, setEditingProduct] = useState(null);
-  const [showModal, setShowModal] = useState(false);
-
-  // Form state
-  const [formData, setFormData] = useState({
-    id: '',
-    value: '',
-    name: '',
-    category_id: '',
-    price: 0,
-    stock: 50,
-    image: '',
-    description: '',
-    is_active: 1
-  });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('ALL');
 
   const loadData = async () => {
     setLoading(true);
@@ -36,7 +23,7 @@ export default function ProductsView({ session, onNotify }) {
       if (catData.success) setCategories(catData.data || []);
     } catch (err) {
       console.error(err);
-      if (onNotify) onNotify('error', 'Error cargando datos de productos');
+      if (onNotify) onNotify('error', 'Error cargando catálogo de productos');
     } finally {
       setLoading(false);
     }
@@ -57,104 +44,41 @@ export default function ProductsView({ session, onNotify }) {
       if (onNotify) onNotify('success', `¡Sincronizado! Se procesaron ${result.count} productos desde iDempiere.`);
       loadData();
     } catch (err) {
-      if (onNotify) onNotify('error', `Fallo al sincronizar: ${err.message}`);
+      if (onNotify) onNotify('error', `Fallo al sincronizar productos: ${err.message}`);
     } finally {
       setSyncing(false);
     }
   };
 
-  const handleOpenAdd = () => {
-    setEditingProduct(null);
-    setFormData({
-      id: '',
-      value: `SKU-${Date.now().toString().slice(-5)}`,
-      name: '',
-      category_id: categories[0]?.id || '',
-      price: 9.99,
-      stock: 50,
-      image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500',
-      description: '',
-      is_active: 1
-    });
-    setShowModal(true);
-  };
-
-  const handleOpenEdit = (prod) => {
-    setEditingProduct(prod);
-    setFormData({
-      id: prod.id,
-      value: prod.value || '',
-      name: prod.name || '',
-      category_id: prod.category_id || '',
-      price: prod.price || 0,
-      stock: prod.stock || 0,
-      image: prod.image || '',
-      description: prod.description || '',
-      is_active: prod.is_active ? 1 : 0
-    });
-    setShowModal(true);
-  };
-
-  const handleDelete = async (id) => {
-    if (!window.confirm(`¿Seguro que deseas eliminar el producto #${id}?`)) return;
-    try {
-      const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
-      const data = await res.json();
-      if (data.success) {
-        if (onNotify) onNotify('success', data.message);
-        loadData();
-      } else {
-        if (onNotify) onNotify('error', data.error);
-      }
-    } catch (err) {
-      if (onNotify) onNotify('error', err.message);
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      let url = '/api/products';
-      let method = 'POST';
-
-      if (editingProduct) {
-        url = `/api/products/${editingProduct.id}`;
-        method = 'PUT';
-      }
-
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-      const data = await res.json();
-
-      if (data.success) {
-        if (onNotify) onNotify('success', data.message);
-        setShowModal(false);
-        loadData();
-      } else {
-        if (onNotify) onNotify('error', data.error);
-      }
-    } catch (err) {
-      if (onNotify) onNotify('error', err.message);
-    }
-  };
+  const filteredProducts = products.filter(p => {
+    const q = searchTerm.toLowerCase();
+    const matchesSearch = (
+      (p.name && p.name.toLowerCase().includes(q)) ||
+      (p.value && p.value.toLowerCase().includes(q)) ||
+      (p.description && p.description.toLowerCase().includes(q)) ||
+      String(p.id).includes(q)
+    );
+    const matchesCategory = selectedCategory === 'ALL' || String(p.category_id) === String(selectedCategory);
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <div style={{ color: '#f8fafc' }}>
       {/* Header Bar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', padding: '4px 10px', borderRadius: '6px', fontSize: '0.78rem', fontWeight: '700', marginBottom: '8px' }}>
+            🔒 SOLO LECTURA &bull; MAESTRO ERP (FUENTE DE LA VERDAD: IDEMPIERE)
+          </div>
           <h2 style={{ margin: '0 0 6px 0', fontSize: '1.6rem', fontWeight: '800' }}>
-            🍔 Catálogo de Productos
+            📦 Catálogo Maestro de Productos (M_Product)
           </h2>
           <p style={{ margin: 0, color: '#94a3b8', fontSize: '0.9rem' }}>
-            Mapeo con iDempiere ERP: <code style={{ color: '#38bdf8' }}>M_Product</code> &bull; Base local: <span style={{ color: '#10b981' }}>SQLite</span>
+            Este catálogo se sincroniza en una sola dirección desde el ERP iDempiere hacia la aplicación, manteniendo a iDempiere como la única fuente de la verdad. No permite mutaciones locales manuales.
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div>
           <button
             onClick={handleSync}
             disabled={syncing}
@@ -169,80 +93,144 @@ export default function ProductsView({ session, onNotify }) {
               cursor: syncing ? 'not-allowed' : 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '6px'
+              gap: '6px',
+              boxShadow: '0 4px 12px rgba(2, 132, 199, 0.25)'
             }}
           >
-            {syncing ? '🔄 Sincronizando...' : '⚡ Sincronizar desde ERP'}
-          </button>
-
-          <button
-            onClick={handleOpenAdd}
-            style={{
-              padding: '10px 18px',
-              background: '#ff6b00',
-              border: 'none',
-              borderRadius: '8px',
-              color: '#ffffff',
-              fontWeight: '700',
-              fontSize: '0.88rem',
-              cursor: 'pointer'
-            }}
-          >
-            + Nuevo Producto
+            {syncing ? '🔄 Sincronizando...' : '⚡ Sincronizar Productos desde ERP'}
           </button>
         </div>
       </div>
 
-      {/* Tabla de Productos */}
+      {/* Toolbar de Búsqueda y Filtrado */}
+      <div style={{ marginBottom: '16px', display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="🔍 Buscar por nombre, SKU, código o ID..."
+          style={{
+            flex: 1,
+            minWidth: '260px',
+            maxWidth: '380px',
+            padding: '10px 14px',
+            background: '#111827',
+            border: '1px solid #1f2937',
+            borderRadius: '8px',
+            color: '#ffffff',
+            fontSize: '0.86rem'
+          }}
+        />
+
+        <select
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+          style={{
+            padding: '10px 14px',
+            background: '#111827',
+            border: '1px solid #1f2937',
+            borderRadius: '8px',
+            color: '#38bdf8',
+            fontSize: '0.86rem',
+            fontWeight: '600'
+          }}
+        >
+          <option value="ALL">Todas las Categorías ({categories.length})</option>
+          {categories.map(c => (
+            <option key={c.id} value={c.id}>{c.name} (#{c.id})</option>
+          ))}
+        </select>
+
+        <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+          Mostrando {filteredProducts.length} de {products.length} productos
+        </span>
+      </div>
+
+      {/* Tabla Solo Lectura */}
       <div style={{ background: '#111827', border: '1px solid #1f2937', borderRadius: '14px', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.88rem' }}>
           <thead>
             <tr style={{ background: '#1a2234', color: '#94a3b8', borderBottom: '1px solid #1f2937' }}>
-              <th style={{ padding: '14px 18px' }}>ID / Img</th>
-              <th style={{ padding: '14px 18px' }}>SKU / Código</th>
-              <th style={{ padding: '14px 18px' }}>Nombre</th>
+              <th style={{ padding: '14px 18px' }}>ID ERP</th>
+              <th style={{ padding: '14px 18px' }}>Código / SKU</th>
+              <th style={{ padding: '14px 18px' }}>Producto</th>
               <th style={{ padding: '14px 18px' }}>Categoría</th>
-              <th style={{ padding: '14px 18px' }}>Precio</th>
+              <th style={{ padding: '14px 18px' }}>Precio Estándar</th>
               <th style={{ padding: '14px 18px' }}>Stock</th>
               <th style={{ padding: '14px 18px' }}>Estado</th>
-              <th style={{ padding: '14px 18px', textAlign: 'right' }}>Acciones</th>
+              <th style={{ padding: '14px 18px', textAlign: 'right' }}>Modo</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
                 <td colSpan="8" style={{ padding: '36px', textAlign: 'center', color: '#64748b' }}>
-                  Cargando productos desde SQLite...
+                  Cargando catálogo maestro de productos desde SQLite...
                 </td>
               </tr>
-            ) : products.length === 0 ? (
+            ) : filteredProducts.length === 0 ? (
               <tr>
                 <td colSpan="8" style={{ padding: '36px', textAlign: 'center', color: '#64748b' }}>
-                  No hay productos registrados. Haz clic en "Sincronizar desde ERP" o añade uno nuevo.
+                  {searchTerm || selectedCategory !== 'ALL'
+                    ? 'No se encontraron productos con los filtros aplicados.'
+                    : 'No hay productos sincronizados en SQLite. Haz clic en "Sincronizar Productos desde ERP".'}
                 </td>
               </tr>
             ) : (
-              products.map((p) => (
+              filteredProducts.map((p) => (
                 <tr key={p.id} style={{ borderBottom: '1px solid #1f2937', transition: 'background 0.15s' }}>
-                  <td style={{ padding: '12px 18px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <img
-                      src={p.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100'}
-                      alt={p.name}
-                      style={{ width: '38px', height: '38px', borderRadius: '8px', objectFit: 'cover', background: '#1f2937' }}
-                      onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100'; }}
-                    />
-                    <span style={{ fontWeight: '700', color: '#94a3b8' }}>#{p.id}</span>
+                  <td style={{ padding: '14px 18px', fontWeight: '700', color: '#cbd5e1' }}>#{p.id}</td>
+                  <td style={{ padding: '14px 18px', color: '#38bdf8', fontFamily: 'monospace', fontWeight: '700' }}>
+                    {p.value || '-'}
                   </td>
-                  <td style={{ padding: '12px 18px', color: '#38bdf8', fontFamily: 'monospace' }}>{p.value || '-'}</td>
-                  <td style={{ padding: '12px 18px', fontWeight: '600' }}>{p.name}</td>
-                  <td style={{ padding: '12px 18px' }}>
-                    <span style={{ background: '#1e293b', padding: '3px 8px', borderRadius: '6px', fontSize: '0.78rem', color: '#cbd5e1' }}>
-                      {p.category_name || 'Sin Categoría'}
+                  <td style={{ padding: '14px 18px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      {p.image && (
+                        <img
+                          src={p.image}
+                          alt={p.name}
+                          style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover', border: '1px solid #374151' }}
+                          onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                        />
+                      )}
+                      <div>
+                        <div style={{ fontWeight: '700', color: '#f8fafc' }}>{p.name}</div>
+                        {p.description && (
+                          <div style={{ fontSize: '0.75rem', color: '#94a3b8', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {p.description}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+                  <td style={{ padding: '14px 18px' }}>
+                    <span style={{
+                      padding: '3px 8px',
+                      background: 'rgba(56, 189, 248, 0.12)',
+                      color: '#38bdf8',
+                      borderRadius: '6px',
+                      fontSize: '0.78rem',
+                      fontWeight: '700'
+                    }}>
+                      {p.category_name || `Cat #${p.category_id}`}
                     </span>
                   </td>
-                  <td style={{ padding: '12px 18px', fontWeight: '800', color: '#10b981' }}>${Number(p.price).toFixed(2)}</td>
-                  <td style={{ padding: '12px 18px', color: '#cbd5e1' }}>{p.stock} un.</td>
-                  <td style={{ padding: '12px 18px' }}>
+                  <td style={{ padding: '14px 18px', fontWeight: '800', color: '#10b981', fontSize: '0.95rem' }}>
+                    ${parseFloat(p.price || 0).toFixed(2)}
+                  </td>
+                  <td style={{ padding: '14px 18px' }}>
+                    <span style={{
+                      padding: '3px 8px',
+                      borderRadius: '6px',
+                      fontSize: '0.75rem',
+                      fontWeight: '700',
+                      background: p.stock > 0 ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                      color: p.stock > 0 ? '#34d399' : '#f87171'
+                    }}>
+                      {p.stock} u.
+                    </span>
+                  </td>
+                  <td style={{ padding: '14px 18px' }}>
                     <span style={{
                       padding: '3px 8px',
                       borderRadius: '6px',
@@ -254,36 +242,17 @@ export default function ProductsView({ session, onNotify }) {
                       {p.is_active ? 'Activo' : 'Inactivo'}
                     </span>
                   </td>
-                  <td style={{ padding: '12px 18px', textAlign: 'right' }}>
-                    <button
-                      onClick={() => handleOpenEdit(p)}
-                      style={{
-                        padding: '6px 12px',
-                        background: '#1f2937',
-                        border: '1px solid #374151',
-                        borderRadius: '6px',
-                        color: '#f8fafc',
-                        cursor: 'pointer',
-                        marginRight: '8px',
-                        fontSize: '0.8rem'
-                      }}
-                    >
-                      ✏️ Editar
-                    </button>
-                    <button
-                      onClick={() => handleDelete(p.id)}
-                      style={{
-                        padding: '6px 12px',
-                        background: 'rgba(239, 68, 68, 0.1)',
-                        border: '1px solid rgba(239, 68, 68, 0.3)',
-                        borderRadius: '6px',
-                        color: '#ef4444',
-                        cursor: 'pointer',
-                        fontSize: '0.8rem'
-                      }}
-                    >
-                      🗑️ Eliminar
-                    </button>
+                  <td style={{ padding: '14px 18px', textAlign: 'right' }}>
+                    <span style={{
+                      padding: '4px 8px',
+                      background: '#1f2937',
+                      color: '#94a3b8',
+                      borderRadius: '6px',
+                      fontSize: '0.75rem',
+                      border: '1px solid #374151'
+                    }}>
+                      👁️ Solo Lectura
+                    </span>
                   </td>
                 </tr>
               ))
@@ -291,126 +260,6 @@ export default function ProductsView({ session, onNotify }) {
           </tbody>
         </table>
       </div>
-
-      {/* Modal Formulario */}
-      {showModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0,0,0,0.8)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 10000,
-          padding: '16px'
-        }}>
-          <div style={{ background: '#1e2433', border: '1px solid #334155', borderRadius: '16px', padding: '24px', maxWidth: '520px', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
-            <h3 style={{ margin: '0 0 16px 0', fontSize: '1.25rem' }}>
-              {editingProduct ? `Editar Producto #${editingProduct.id}` : 'Crear Nuevo Producto'}
-            </h3>
-            <form onSubmit={handleSubmit}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '4px' }}>SKU / Código *</label>
-                  <input
-                    type="text"
-                    value={formData.value}
-                    onChange={(e) => setFormData({ ...formData, value: e.target.value })}
-                    required
-                    style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', color: '#f8fafc', boxSizing: 'border-box' }}
-                  />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '4px' }}>Categoría</label>
-                  <select
-                    value={formData.category_id}
-                    onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-                    style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', color: '#f8fafc', boxSizing: 'border-box' }}
-                  >
-                    <option value="">Seleccione Categoría</option>
-                    {categories.map((c) => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div style={{ marginBottom: '12px' }}>
-                <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '4px' }}>Nombre del Producto *</label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  required
-                  style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', color: '#f8fafc', boxSizing: 'border-box' }}
-                />
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '4px' }}>Precio ($) *</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-                    required
-                    style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', color: '#f8fafc', boxSizing: 'border-box' }}
-                  />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '4px' }}>Stock Disponible</label>
-                  <input
-                    type="number"
-                    value={formData.stock}
-                    onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value, 10) || 0 })}
-                    style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', color: '#f8fafc', boxSizing: 'border-box' }}
-                  />
-                </div>
-              </div>
-
-              <div style={{ marginBottom: '12px' }}>
-                <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '4px' }}>URL de Imagen</label>
-                <input
-                  type="text"
-                  value={formData.image}
-                  onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                  style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', color: '#f8fafc', boxSizing: 'border-box' }}
-                />
-              </div>
-
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '4px' }}>Descripción</label>
-                <textarea
-                  rows="3"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', color: '#f8fafc', boxSizing: 'border-box' }}
-                />
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  style={{ padding: '10px 16px', background: '#334155', border: 'none', borderRadius: '8px', color: '#f8fafc', cursor: 'pointer' }}
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  style={{ padding: '10px 18px', background: '#ff6b00', border: 'none', borderRadius: '8px', color: '#ffffff', fontWeight: '700', cursor: 'pointer' }}
-                >
-                  {editingProduct ? 'Guardar Cambios' : 'Crear Producto'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -4,6 +4,7 @@ import {
   loginDirect as serviceLoginDirect,
   requestContextStep1 as serviceRequestContextStep1,
   completeLoginStep2 as serviceCompleteLoginStep2,
+  fetchWarehousesForOrganization,
   saveSession,
   loadSession,
   clearSession
@@ -199,6 +200,16 @@ export function AuthProvider({ children }) {
     loginStep1: requestContextStep1, // Alias
     completeLoginStep2,
     loginStep2: completeLoginStep2, // Alias
+    fetchWarehousesForOrg: (clientId, roleId, organizationId, stage1Token, overrideBaseUrl, overrideMode) => {
+      return fetchWarehousesForOrganization(
+        clientId,
+        roleId,
+        organizationId,
+        stage1Token,
+        overrideBaseUrl || erpBaseUrl,
+        overrideMode || connectionMode
+      );
+    },
     logout,
     isInspectorOpen,
     setIsInspectorOpen,

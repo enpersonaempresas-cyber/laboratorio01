@@ -175,6 +175,25 @@ Este archivo establece las directivas técnicas, directrices de diseño, reglas 
     - *Impuestos* (`C_Tax`) en **modo estrictamente de solo lectura** con bloqueo HTTP 405 en mutaciones (`POST`, `PUT`, `DELETE`).
   - Habilitación de iconos vectoriales dedicados (`UsersGroupIcon`, `PriceTagIcon`, `DatabaseIcon`) y navegación completa en `SidebarNavbar.jsx` tanto en modo expandido como colapsado.
   - Verificación del pipeline completo de compilación (`npm run build:all`) y despliegue local verificado con `node server/src/app.js`.
+- **2026-11-23 (v1.6)**:
+  - **Corrección de Filtrado en Cascada (Organización -> Almacenes en Login Paso 2 Multitenant)**:
+    - Resuelto el problema donde el selector de almacenes quedaba fijado en los almacenes de la primera organización al cambiar de organización contra `test.idempiere.org`.
+    - Backend (`server/src/services/idempiereService.js` y `server/src/routes/auth.js`): Implementación del endpoint `POST /api/auth/warehouses` y del método `getWarehousesForOrganization`, consultando `GET /api/v1/auth/warehouses?client={client}&role={role}&organization={organization}` con token Bearer de Paso 1, y mapeo de almacenes por organización para el sandbox GardenWorld.
+    - Frontend (`apps/admin`):
+      - Inclusión de `fetchWarehousesForOrganization` en `idempiereAuthService.js` y exposición reactiva en `AuthContext.jsx`.
+      - `LoginPage.jsx`: Actualización del combobox de organizaciones con manejador dinámico `handleOrganizationChange`, caché local por organización (`warehousesCache`), auto-selección del primer almacén correspondiente y feedback visual interactivo de estado de cascada.
+      - Priorización automática de la organización corporativa `HQ` (id 11) en el listado inicial.
+  - **Enfoque de Solo Lectura para Categorías de Productos y Catálogo de Productos (Fuente de la Verdad: iDempiere ERP)**:
+    - Aplicación del modelo estricto de solo lectura a *Categorías de Productos* (`M_Product_Category`) y *Catálogo de Productos* (`M_Product`), idéntico al de *Impuestos* (`C_Tax`).
+    - Backend (`server/src/routes/api.js`): Bloqueo estricto con `HTTP 405 Method Not Allowed` para peticiones `POST`, `PUT`, `DELETE` en `/api/products` y `/api/product-categories`. Metadato `{ readOnly: true }` en endpoints `GET`.
+    - Frontend (`apps/admin`): Vistas `ProductCategoriesView.jsx` y `ProductsView.jsx` adaptadas a modo solo lectura con badges `🔒 SOLO LECTURA • MAESTRO ERP (FUENTE DE LA VERDAD: IDEMPIERE)`, eliminación de botones/modales de creación, edición y borrado local, y preservación del botón de sincronización directa desde el ERP. Badges indicativos en `SidebarNavbar.jsx`.
+  - **Limpieza y Repoblación Integral de la Base de Datos SQLite**:
+    - Incorporación de `clearProductsAndCategories()` en `server/src/db.js` para vaciar tablas de productos, categorías y precios locales en una única transacción atómica.
+    - Ejecución de limpieza total y sincronización inicial con autenticación contra `https://test.idempiere.org`:
+      - 14 Categorías de productos sincronizadas desde `M_Product_Category`.
+      - 55 Productos maestros sincronizados desde `M_Product` con precios vigentes desde `M_ProductPrice` (Tarifa Estándar).
+  - Pipeline de compilación global verificado (`npm run build:all`) y sincronizado en `server/public`.
+
 
 
 

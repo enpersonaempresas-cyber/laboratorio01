@@ -289,6 +289,56 @@ export async function requestContextStep1(credentials, connectionMode = 'proxy')
 }
 
 /**
+ * Consulta almacenes asignados a una organización específica para filtrado en cascada
+ */
+export async function fetchWarehousesForOrganization(clientId, roleId, organizationId, stage1Token, erpBaseUrl, connectionMode = 'proxy') {
+  const cleanBase = normalizeErpBaseUrl(erpBaseUrl);
+
+  // MODO DIRECTO: Si el usuario eligió conexión directa y tenemos stage1Token válido
+  if (connectionMode === 'direct' && stage1Token && stage1Token !== 'sandbox_temp_token') {
+    const targetEndpoint = `${cleanBase}/api/v1/auth/warehouses?client=${clientId || 11}&role=${roleId || 102}&organization=${organizationId}`;
+    try {
+      const response = await fetch(targetEndpoint, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${stage1Token}`
+        }
+      });
+      const resJson = await response.json().catch(() => ({}));
+      if (response.ok && Array.isArray(resJson.warehouses)) {
+        return resJson.warehouses;
+      }
+    } catch (directErr) {
+      console.warn('[AuthService] Consulta directa de almacenes falló (' + directErr.message + '). Auto-recuperando vía Proxy Backend...');
+    }
+  }
+
+  // MODO PROXY BACKEND:
+  const response = await fetch('/api/auth/warehouses', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    body: JSON.stringify({
+      clientId: clientId || 11,
+      roleId: roleId || 102,
+      organizationId,
+      stage1Token,
+      erpBaseUrl: cleanBase
+    })
+  });
+
+  const data = await response.json().catch(() => ({}));
+  if (response.ok && data.success && Array.isArray(data.data?.warehouses)) {
+    return data.data.warehouses;
+  }
+
+  return [];
+}
+
+/**
  * Paso 2: Enviar contexto elegido por el usuario para obtener el Token definitivo
  * Conforme a la documentación oficial iDempiere REST (bxservice.github.io/idempiere-rest-docs):
  * Ejecuta PUT /api/v1/auth/tokens con Authorization: Bearer <stage1Token>

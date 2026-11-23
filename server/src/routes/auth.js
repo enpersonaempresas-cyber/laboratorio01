@@ -98,6 +98,47 @@ router.post('/context', async (req, res) => {
 });
 
 /**
+ * Endpoint para consultar almacenes en cascada para una organización específica
+ * POST /api/auth/warehouses
+ */
+router.post('/warehouses', async (req, res) => {
+  try {
+    const { clientId, roleId, organizationId, stage1Token, erpBaseUrl, forceFallback } = req.body;
+
+    if (!organizationId) {
+      return res.status(400).json({
+        success: false,
+        error: 'El parámetro "organizationId" es obligatorio para consultar almacenes.'
+      });
+    }
+
+    const warehouses = await idempiereService.getWarehousesForOrganization(
+      clientId || 11,
+      roleId || 102,
+      organizationId,
+      stage1Token,
+      {
+        baseUrl: erpBaseUrl,
+        allowFallback: forceFallback !== undefined ? Boolean(forceFallback) : true
+      }
+    );
+
+    return res.json({
+      success: true,
+      message: `Almacenes obtenidos para organización #${organizationId}`,
+      data: { warehouses }
+    });
+  } catch (error) {
+    console.error('[Auth Warehouses Error]', error.message);
+    const status = error.statusCode || 500;
+    return res.status(status).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
  * Endpoint para Modalidad 2 (Paso 2): Confirmar Contexto y Obtener Token Definitivo
  * Implementa estrictamente el flujo oficial PUT /api/v1/auth/tokens con Authorization: Bearer <stage1Token>
  * POST /api/auth/step2

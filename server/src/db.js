@@ -452,6 +452,17 @@ function updateProduct(id, data) {
   return getProductById(id);
 }
 
+function clearProductsAndCategories() {
+  const d = getDatabase();
+  const tx = d.transaction(() => {
+    d.prepare('DELETE FROM product_prices').run();
+    d.prepare('DELETE FROM products').run();
+    d.prepare('DELETE FROM product_categories').run();
+  });
+  tx();
+  return { success: true };
+}
+
 function deleteProduct(id) {
   const d = getDatabase();
   const res = d.prepare('DELETE FROM products WHERE id = ?').run(id);
@@ -1023,6 +1034,7 @@ module.exports = {
   addProduct,
   updateProduct,
   deleteProduct,
+  clearProductsAndCategories,
   resetProducts,
   // Categorías de Productos
   getProductCategories,

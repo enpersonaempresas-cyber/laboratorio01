@@ -7,6 +7,7 @@ export default function LoginPage() {
     loginDirect,
     requestContextStep1,
     completeLoginStep2,
+    fetchWarehousesForOrg,
     isLoading,
     authError,
     setAuthError,
@@ -37,6 +38,9 @@ export default function LoginPage() {
   const [currentStep, setCurrentStep] = useState(1); // 1 = Credenciales, 2 = Selección de Contexto
   const [stage1Token, setStage1Token] = useState(null);
   const [availableContext, setAvailableContext] = useState(null);
+  const [currentWarehouses, setCurrentWarehouses] = useState([]);
+  const [isLoadingWarehouses, setIsLoadingWarehouses] = useState(false);
+  const [warehousesCache, setWarehousesCache] = useState({});
   const [selectedContext, setSelectedContext] = useState({
     clientId: 11,
     roleId: 102,
@@ -67,6 +71,8 @@ export default function LoginPage() {
     setErrorDetails(null);
     setCurrentStep(1);
     setAvailableContext(null);
+    setCurrentWarehouses([]);
+    setWarehousesCache({});
   };
 
   // Login Rápido 1-Clic
@@ -118,16 +124,90 @@ export default function LoginPage() {
     if (result.success && !result.authenticated) {
       const data = result.contextData || result;
       setAvailableContext(data);
-      setStage1Token(data.stage1Token || null);
-      // Auto-seleccionar primer elemento disponible
+      const token1 = data.stage1Token || null;
+      setStage1Token(token1);
+
+      // Priorizar organización "HQ" (id 11) si existe
+      const hqOrg = data.organizations?.find(o => o.id === 11 || (o.name && o.name.toUpperCase().includes('HQ')));
+      const initialOrgId = hqOrg?.id ?? (data.organizations?.[0]?.id ?? 11);
+      const initialRoleId = data.roles?.[0]?.id ?? 102;
+      const initialClientId = data.clients?.[0]?.id ?? 11;
+
+      // Almacenes iniciales para initialOrgId
+      let initialWhs = data.warehouses || [];
+      setCurrentWarehouses(initialWhs);
+      setWarehousesCache({ [initialOrgId]: initialWhs });
+
+      const initialWhId = initialWhs[0]?.id ?? 103;
+
       setSelectedContext({
-        clientId: data.clients?.[0]?.id ?? 11,
-        roleId: data.roles?.[0]?.id ?? 102,
-        organizationId: data.organizations?.[0]?.id ?? 11,
-        warehouseId: data.warehouses?.[0]?.id ?? 103,
+        clientId: initialClientId,
+        roleId: initialRoleId,
+        organizationId: initialOrgId,
+        warehouseId: initialWhId,
         language: data.languages?.[0]?.id ?? 'es_PE'
       });
+
+      // Si los almacenes iniciales están vacíos o no corresponden a la org seleccionada, consultar en cascada
+      if (initialWhs.length === 0 || (initialOrgId !== data.organizations?.[0]?.id)) {
+        setIsLoadingWarehouses(true);
+        fetchWarehousesForOrg(initialClientId, initialRoleId, initialOrgId, token1, erpBaseUrl, connectionMode)
+          .then(whList => {
+            const list = Array.isArray(whList) ? whList : [];
+            setCurrentWarehouses(list);
+            setWarehousesCache(prev => ({ ...prev, [initialOrgId]: list }));
+            if (list.length > 0) {
+              setSelectedContext(prev => ({ ...prev, warehouseId: list[0].id }));
+            }
+          })
+          .catch(console.error)
+          .finally(() => setIsLoadingWarehouses(false));
+      }
+
       setCurrentStep(2);
+    }
+  };
+
+  // Manejador del cambio de Organización con filtrado en cascada hacia Almacenes
+  const handleOrganizationChange = async (newOrgIdStr) => {
+    const newOrgId = Number(newOrgIdStr);
+    setSelectedContext(prev => ({
+      ...prev,
+      organizationId: newOrgId,
+      warehouseId: ''
+    }));
+
+    // Si ya los tenemos cacheados, usarlos inmediatamente sin latencia de red
+    if (warehousesCache[newOrgId]) {
+      const cachedWhs = warehousesCache[newOrgId];
+      setCurrentWarehouses(cachedWhs);
+      if (cachedWhs.length > 0) {
+        setSelectedContext(prev => ({ ...prev, warehouseId: cachedWhs[0].id }));
+      }
+      return;
+    }
+
+    setIsLoadingWarehouses(true);
+    try {
+      const whList = await fetchWarehousesForOrg(
+        selectedContext.clientId,
+        selectedContext.roleId,
+        newOrgId,
+        stage1Token,
+        erpBaseUrl,
+        connectionMode
+      );
+      const validWhs = Array.isArray(whList) ? whList : [];
+      setWarehousesCache(prev => ({ ...prev, [newOrgId]: validWhs }));
+      setCurrentWarehouses(validWhs);
+      if (validWhs.length > 0) {
+        setSelectedContext(prev => ({ ...prev, warehouseId: validWhs[0].id }));
+      }
+    } catch (err) {
+      console.error('Error al actualizar almacenes en cascada:', err);
+      setCurrentWarehouses([]);
+    } finally {
+      setIsLoadingWarehouses(false);
     }
   };
 
@@ -843,12 +923,17 @@ export default function LoginPage() {
 
                   {/* Organización */}
                   <div>
-                    <label style={{ fontSize: '0.72rem', color: '#38bdf8', fontWeight: '800', display: 'block', marginBottom: '4px' }}>
-                      Organización / Sucursal (organizationId):
-                    </label>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                      <label style={{ fontSize: '0.72rem', color: '#38bdf8', fontWeight: '800' }}>
+                        Organización / Sucursal (organizationId):
+                      </label>
+                      <span style={{ fontSize: '0.66rem', color: '#94a3b8' }}>
+                        🔄 Cascada activa
+                      </span>
+                    </div>
                     <select
                       value={selectedContext.organizationId}
-                      onChange={(e) => setSelectedContext(prev => ({ ...prev, organizationId: Number(e.target.value) }))}
+                      onChange={(e) => handleOrganizationChange(e.target.value)}
                       style={{ width: '100%', padding: '8px 10px', background: '#0d0e12', border: '1px solid #0284c7', borderRadius: '8px', color: '#38bdf8', fontSize: '0.82rem', fontWeight: '700' }}
                     >
                       {availableContext?.organizations?.map(o => (
@@ -859,17 +944,43 @@ export default function LoginPage() {
 
                   {/* Almacén */}
                   <div>
-                    <label style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: '700', display: 'block', marginBottom: '4px' }}>
-                      Almacén de Despacho (Warehouse):
-                    </label>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                      <label style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: '700' }}>
+                        Almacén de Despacho (Warehouse):
+                      </label>
+                      {isLoadingWarehouses ? (
+                        <span style={{ fontSize: '0.66rem', color: '#f59e0b', fontWeight: '700' }}>
+                          ⏳ Actualizando almacenes...
+                        </span>
+                      ) : (
+                        <span style={{ fontSize: '0.66rem', color: '#10b981', fontWeight: '700' }}>
+                          ✓ {currentWarehouses.length} almacén(es)
+                        </span>
+                      )}
+                    </div>
                     <select
                       value={selectedContext.warehouseId}
                       onChange={(e) => setSelectedContext(prev => ({ ...prev, warehouseId: Number(e.target.value) }))}
-                      style={{ width: '100%', padding: '8px 10px', background: '#0d0e12', border: '1px solid #334155', borderRadius: '8px', color: 'white', fontSize: '0.82rem' }}
+                      disabled={isLoadingWarehouses}
+                      style={{
+                        width: '100%',
+                        padding: '8px 10px',
+                        background: '#0d0e12',
+                        border: isLoadingWarehouses ? '1px solid #f59e0b' : '1px solid #334155',
+                        borderRadius: '8px',
+                        color: 'white',
+                        fontSize: '0.82rem'
+                      }}
                     >
-                      {availableContext?.warehouses?.map(w => (
-                        <option key={w.id} value={w.id}>{w.name} (#{w.id})</option>
-                      ))}
+                      {isLoadingWarehouses ? (
+                        <option value="">Cargando almacenes de la organización seleccionada...</option>
+                      ) : currentWarehouses.length === 0 ? (
+                        <option value="">(No hay almacenes asignados a esta organización)</option>
+                      ) : (
+                        currentWarehouses.map(w => (
+                          <option key={w.id} value={w.id}>{w.name} (#{w.id})</option>
+                        ))
+                      )}
                     </select>
                   </div>
 

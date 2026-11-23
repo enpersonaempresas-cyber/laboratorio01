@@ -18,12 +18,18 @@ router.get('/health', (req, res) => {
 });
 
 // ==========================================
-// 2. PRODUCTOS (M_Product)
+// 2. PRODUCTOS (M_Product) - ESTRICTAMENTE SOLO LECTURA
 // ==========================================
 router.get('/products', (req, res) => {
   try {
     const products = db.getProducts();
-    res.json({ success: true, count: products.length, data: products });
+    res.json({
+      success: true,
+      readOnly: true,
+      count: products.length,
+      message: 'Catálogo de productos (M_Product) en modo de solo lectura (la única fuente de verdad es iDempiere ERP).',
+      data: products
+    });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
@@ -33,95 +39,50 @@ router.get('/products/:id', (req, res) => {
   try {
     const product = db.getProductById(req.params.id);
     if (!product) return res.status(404).json({ success: false, error: 'Producto no encontrado' });
-    res.json({ success: true, data: product });
+    res.json({ success: true, readOnly: true, data: product });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
 });
 
-router.post('/products', (req, res) => {
-  try {
-    const { name, price } = req.body;
-    if (!name || price === undefined) {
-      return res.status(400).json({ success: false, error: 'Nombre y precio son requeridos.' });
-    }
-    const product = db.addProduct(req.body);
-    res.status(201).json({ success: true, message: 'Producto creado exitosamente', data: product });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+// Bloqueo explícito de cualquier intento de mutación en productos (Solo Lectura)
+router.all(['/products', '/products/*'], (req, res, next) => {
+  if (req.method !== 'GET') {
+    return res.status(405).json({
+      success: false,
+      error: 'Operación no permitida: El catálogo de productos (M_Product) es estrictamente de solo lectura (la única fuente de verdad es iDempiere ERP).'
+    });
   }
-});
-
-router.put('/products/:id', (req, res) => {
-  try {
-    const updated = db.updateProduct(req.params.id, req.body);
-    if (!updated) return res.status(404).json({ success: false, error: 'Producto no encontrado' });
-    res.json({ success: true, message: 'Producto actualizado exitosamente', data: updated });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-router.delete('/products/:id', (req, res) => {
-  try {
-    const ok = db.deleteProduct(req.params.id);
-    if (!ok) return res.status(404).json({ success: false, error: 'Producto no encontrado' });
-    res.json({ success: true, message: `Producto ${req.params.id} eliminado.` });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-router.post('/reset', (req, res) => {
-  try {
-    db.resetProducts();
-    res.json({ success: true, message: 'Catálogo de hamburguesas restablecido con éxito.' });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
+  next();
 });
 
 // ==========================================
-// 3. CATEGORÍAS DE PRODUCTOS (M_Product_Category)
+// 3. CATEGORÍAS DE PRODUCTOS (M_Product_Category) - ESTRICTAMENTE SOLO LECTURA
 // ==========================================
 router.get('/product-categories', (req, res) => {
   try {
     const categories = db.getProductCategories();
-    res.json({ success: true, count: categories.length, data: categories });
+    res.json({
+      success: true,
+      readOnly: true,
+      count: categories.length,
+      message: 'Catálogo de categorías de productos (M_Product_Category) en modo de solo lectura (la única fuente de verdad es iDempiere ERP).',
+      data: categories
+    });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
 });
 
-router.post('/product-categories', (req, res) => {
-  try {
-    const { name } = req.body;
-    if (!name) return res.status(400).json({ success: false, error: 'El nombre es obligatorio.' });
-    const category = db.addProductCategory(req.body);
-    res.status(201).json({ success: true, message: 'Categoría creada exitosamente', data: category });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+// Bloqueo explícito de cualquier intento de mutación en categorías de productos (Solo Lectura)
+router.all(['/product-categories', '/product-categories/*'], (req, res, next) => {
+  if (req.method !== 'GET') {
+    return res.status(405).json({
+      success: false,
+      error: 'Operación no permitida: El catálogo de categorías de productos (M_Product_Category) es estrictamente de solo lectura (la única fuente de verdad es iDempiere ERP).'
+    });
   }
-});
-
-router.put('/product-categories/:id', (req, res) => {
-  try {
-    const updated = db.updateProductCategory(req.params.id, req.body);
-    if (!updated) return res.status(404).json({ success: false, error: 'Categoría no encontrada' });
-    res.json({ success: true, message: 'Categoría actualizada exitosamente', data: updated });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-router.delete('/product-categories/:id', (req, res) => {
-  try {
-    const ok = db.deleteProductCategory(req.params.id);
-    if (!ok) return res.status(404).json({ success: false, error: 'Categoría no encontrada' });
-    res.json({ success: true, message: `Categoría ${req.params.id} eliminada.` });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
+  next();
 });
 
 // ==========================================
